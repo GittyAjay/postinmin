@@ -1,0 +1,71 @@
+import type { Business } from "@prisma/client";
+export interface BusinessInput {
+    name: string;
+    category?: string;
+    targetAudience?: string;
+    goals?: string;
+    voiceTone?: string;
+    brandColors?: string;
+    logoUrl?: string;
+    preferredEmotion?: string;
+    preferredStyle?: string;
+    voiceSampleText?: string;
+    preferredPlatforms?: string[];
+}
+export declare const createBusiness: (ownerId: string, data: BusinessInput) => Promise<Business>;
+export declare const listBusinesses: (ownerId: string) => import(".prisma/client").Prisma.PrismaPromise<{
+    name: string;
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    ownerId: string;
+    category: string | null;
+    targetAudience: string | null;
+    goals: string | null;
+    voiceTone: string | null;
+    brandColors: string | null;
+    logoUrl: string | null;
+    preferredEmotion: string | null;
+    preferredStyle: string | null;
+    voiceSampleText: string | null;
+    brandVoiceVector: import("@prisma/client/runtime/library").JsonValue | null;
+    preferredPlatforms: string[];
+}[]>;
+export declare const getBusinessById: (id: string, ownerId: string) => Promise<{
+    name: string;
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    ownerId: string;
+    category: string | null;
+    targetAudience: string | null;
+    goals: string | null;
+    voiceTone: string | null;
+    brandColors: string | null;
+    logoUrl: string | null;
+    preferredEmotion: string | null;
+    preferredStyle: string | null;
+    voiceSampleText: string | null;
+    brandVoiceVector: import("@prisma/client/runtime/library").JsonValue | null;
+    preferredPlatforms: string[];
+}>;
+export declare const updateBusiness: (id: string, ownerId: string, data: Partial<BusinessInput>) => Promise<{
+    name: string;
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    ownerId: string;
+    category: string | null;
+    targetAudience: string | null;
+    goals: string | null;
+    voiceTone: string | null;
+    brandColors: string | null;
+    logoUrl: string | null;
+    preferredEmotion: string | null;
+    preferredStyle: string | null;
+    voiceSampleText: string | null;
+    brandVoiceVector: import("@prisma/client/runtime/library").JsonValue | null;
+    preferredPlatforms: string[];
+}>;
+export declare const deleteBusiness: (id: string, ownerId: string) => Promise<void>;
+//# sourceMappingURL=businessService.d.ts.map

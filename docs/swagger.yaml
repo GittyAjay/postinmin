@@ -1,0 +1,372 @@
+openapi: 3.1.0
+info:
+  title: Madhuvastwa AI Marketing Automation API
+  version: 1.0.0
+servers:
+  - url: /api
+paths:
+  /auth/signup:
+    post:
+      summary: Register a new user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Created
+  /auth/login:
+    post:
+      summary: Authenticate a user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authenticated
+  /business:
+    get:
+      summary: List businesses for the authenticated owner
+      tags: [Business]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of businesses
+    post:
+      summary: Create business profile
+      tags: [Business]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Business'
+      responses:
+        '201':
+          description: Created
+  /template/{businessId}:
+    get:
+      summary: List templates for a business
+      tags: [Template]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Template list
+    post:
+      summary: Create a template for a business
+      tags: [Template]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateInput'
+      responses:
+        '201':
+          description: Created
+  /template/{businessId}/{templateId}:
+    put:
+      summary: Update a template
+      tags: [Template]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: templateId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateInput'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      summary: Delete a template
+      tags: [Template]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: templateId
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+  /template/{businessId}/upload:
+    post:
+      summary: Upload template background
+      tags: [Template]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                background:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Asset uploaded
+  /template/{businessId}/recommend:
+    post:
+      summary: Recommend the best template for a post
+      tags: [Template]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emotion:
+                  type: string
+                style:
+                  type: string
+                platform:
+                  type: string
+      responses:
+        '200':
+          description: Recommendation
+  /calendar/generate:
+    post:
+      summary: Generate a marketing calendar
+      tags: [Calendar]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessId:
+                  type: string
+                startDate:
+                  type: string
+                  format: date
+                days:
+                  type: integer
+                variants:
+                  type: integer
+      responses:
+        '201':
+          description: Calendar generated
+  /ai/preview:
+    post:
+      summary: Generate AI marketing preview
+      tags: [AI]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessId:
+                  type: string
+                theme:
+                  type: string
+      responses:
+        '200':
+          description: Preview generated
+  /analytics/summary:
+    get:
+      summary: Fetch analytics summary for a business
+      tags: [Analytics]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: businessId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: emotion
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Analytics summary
+  /render:
+    post:
+      summary: Render a scheduled post into an image
+      tags: [Render]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                postId:
+                  type: string
+      responses:
+        '200':
+          description: Render job completed
+  /search:
+    get:
+      summary: Search generated posts
+      tags: [Search]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: businessId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search results
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Business:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        targetAudience:
+          type: string
+        goals:
+          type: string
+        voiceTone:
+          type: string
+        brandColors:
+          type: string
+        logoUrl:
+          type: string
+        preferredEmotion:
+          type: string
+        preferredStyle:
+          type: string
+    TemplateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        backgroundUrl:
+          type: string
+        orientation:
+          type: string
+          enum: [square, wide, story]
+        tags:
+          type: array
+          items:
+            type: string
+        emotionFit:
+          type: array
+          items:
+            type: string
+        placeholders:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              type:
+                type: string
+                enum: [text, image]
+              x:
+                type: number
+              y:
+                type: number
+              width:
+                type: number
+              height:
+                type: number
+              fontSize:
+                type: number
+              color:
+                type: string
+
