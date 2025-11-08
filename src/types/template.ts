@@ -28,6 +28,7 @@ export interface TemplatePlaceholder {
   shape?: "rectangle" | "circle" | "triangle" | "line";
   fillColor?: string;
   dashPattern?: number[];
+  sampleText?: string;
 }
 
 export interface TemplateLayout {
