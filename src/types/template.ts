@@ -1,4 +1,4 @@
-export type PlaceholderType = "text" | "image";
+export type PlaceholderType = "text" | "image" | "shape";
 
 export interface TemplatePlaceholder {
   key: string;
@@ -7,12 +7,27 @@ export interface TemplatePlaceholder {
   y: number;
   width?: number;
   height?: number;
+  maxWidth?: number;
   fontSize?: number;
   color?: string;
   borderColor?: string;
   borderWidth?: number;
   borderRadius?: number;
   imageUrl?: string;
+  fontFamily?: string;
+  fontWeight?: "normal" | "bold" | number;
+  fontStyle?: "normal" | "italic";
+  textDecoration?: "none" | "underline" | "line-through";
+  align?: "left" | "center" | "right";
+  opacity?: number;
+  rotation?: number;
+  locked?: boolean;
+  letterSpacing?: number;
+  lineHeight?: number;
+  zIndex?: number;
+  shape?: "rectangle" | "circle" | "triangle" | "line";
+  fillColor?: string;
+  dashPattern?: number[];
 }
 
 export interface TemplateLayout {
