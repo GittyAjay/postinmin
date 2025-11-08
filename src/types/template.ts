@@ -22,5 +22,8 @@ export interface TemplateLayout {
   tags: string[];
   emotionFit: string[];
   placeholders: TemplatePlaceholder[];
+  frameBorderColor?: string;
+  frameBorderWidth?: number;
+  frameBorderRadius?: number;
 }
 
