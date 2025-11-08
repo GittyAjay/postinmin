@@ -15,11 +15,12 @@ const ensureOwnership = async (businessId: string, ownerId: string) => {
 
 const placeholderSchema = z.object({
   key: z.string(),
-  type: z.enum(["text", "image"]),
+  type: z.enum(["text", "image", "shape"]),
   x: z.number(),
   y: z.number(),
   width: z.number().optional(),
   height: z.number().optional(),
+  maxWidth: z.number().optional(),
   fontSize: z.number().optional(),
   color: z.string().optional(),
   borderColor: z.string().optional(),
@@ -27,11 +28,20 @@ const placeholderSchema = z.object({
   borderRadius: z.number().optional(),
   imageUrl: z.string().optional(),
   fontFamily: z.string().optional(),
-  fontWeight: z.string().optional(),
+  fontWeight: z.union([z.string(), z.number()]).optional(),
   fontStyle: z.string().optional(),
   textDecoration: z.string().optional(),
-  align: z.string().optional(),
-  maxWidth: z.number().optional(),
+  align: z.enum(["left", "center", "right"]).optional(),
+  letterSpacing: z.number().optional(),
+  lineHeight: z.number().optional(),
+  opacity: z.number().optional(),
+  rotation: z.number().optional(),
+  locked: z.boolean().optional(),
+  zIndex: z.number().optional(),
+  shape: z.enum(["rectangle", "circle", "triangle", "line"]).optional(),
+  fillColor: z.string().optional(),
+  dashPattern: z.array(z.number()).optional(),
+  sampleText: z.string().optional(),
 });
 
 const templateSchema = z.object({
