@@ -12,6 +12,9 @@ export interface TemplateInput {
   tags: string[];
   emotionFit: string[];
   placeholders: TemplateLayout["placeholders"];
+  canvasPreset?: string;
+  canvasWidth?: number;
+  canvasHeight?: number;
 }
 
 export const createTemplate = async (businessId: string, data: TemplateInput) => {

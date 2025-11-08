@@ -86,6 +86,9 @@ model Template {
   tags          String[]            @default([])
   emotionFit    String[]            @default([])
   placeholders  Json
+  canvasPreset  String?
+  canvasWidth   Int?
+  canvasHeight  Int?
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
   posts         ScheduledPost[]

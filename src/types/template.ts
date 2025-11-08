@@ -42,5 +42,8 @@ export interface TemplateLayout {
   frameBorderColor?: string;
   frameBorderWidth?: number;
   frameBorderRadius?: number;
+  canvasPreset?: string;
+  canvasWidth?: number;
+  canvasHeight?: number;
 }
 

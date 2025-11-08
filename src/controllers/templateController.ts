@@ -52,6 +52,9 @@ const templateSchema = z.object({
     tags: z.array(z.string()).default([]),
     emotionFit: z.array(z.string()).default([]),
     placeholders: z.array(placeholderSchema),
+    canvasPreset: z.string().optional(),
+    canvasWidth: z.number().optional(),
+    canvasHeight: z.number().optional(),
   }),
 });
 
