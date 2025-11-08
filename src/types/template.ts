@@ -12,6 +12,7 @@ export interface TemplatePlaceholder {
   borderColor?: string;
   borderWidth?: number;
   borderRadius?: number;
+  imageUrl?: string;
 }
 
 export interface TemplateLayout {
