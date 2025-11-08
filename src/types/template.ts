@@ -9,6 +9,9 @@ export interface TemplatePlaceholder {
   height?: number;
   fontSize?: number;
   color?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
 }
 
 export interface TemplateLayout {
