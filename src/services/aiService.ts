@@ -10,7 +10,13 @@ export const generatePostPreview = async (businessId: string, theme: string, own
   if (!business) throw new AppError("Business not found", 404);
   if (ownerId && business.ownerId !== ownerId) throw new AppError("Unauthorized", 403);
 
-  const marketing = await generateMarketingPost(business, theme);
+  const marketing = await generateMarketingPost(business, {
+    theme,
+    creativeAngle: `deliver a fresh perspective on ${theme.toLowerCase()} tailored to ${business.targetAudience ?? "your audience"}`,
+    emotion: business.preferredEmotion ?? "joy",
+    formatHint: "square social post preview",
+    ctaFocus: "Invite the viewer to explore the full post",
+  });
   const backgroundUrl = await generateBackgroundImage(marketing.background_prompt);
 
   const template = await recommendTemplate(businessId, {
