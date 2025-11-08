@@ -22,6 +22,16 @@ const placeholderSchema = z.object({
   height: z.number().optional(),
   fontSize: z.number().optional(),
   color: z.string().optional(),
+  borderColor: z.string().optional(),
+  borderWidth: z.number().optional(),
+  borderRadius: z.number().optional(),
+  imageUrl: z.string().optional(),
+  fontFamily: z.string().optional(),
+  fontWeight: z.string().optional(),
+  fontStyle: z.string().optional(),
+  textDecoration: z.string().optional(),
+  align: z.string().optional(),
+  maxWidth: z.number().optional(),
 });
 
 const templateSchema = z.object({
