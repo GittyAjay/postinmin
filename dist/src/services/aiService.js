@@ -13,7 +13,13 @@ const generatePostPreview = async (businessId, theme, ownerId) => {
         throw new errors_1.AppError("Business not found", 404);
     if (ownerId && business.ownerId !== ownerId)
         throw new errors_1.AppError("Unauthorized", 403);
-    const marketing = await (0, deepseekService_1.generateMarketingPost)(business, theme);
+    const marketing = await (0, deepseekService_1.generateMarketingPost)(business, {
+        theme,
+        creativeAngle: `deliver a fresh perspective on ${theme.toLowerCase()} tailored to ${business.targetAudience ?? "your audience"}`,
+        emotion: business.preferredEmotion ?? "joy",
+        formatHint: "square social post preview",
+        ctaFocus: "Invite the viewer to explore the full post",
+    });
     const backgroundUrl = await (0, imageGenService_1.generateBackgroundImage)(marketing.background_prompt);
     const template = await (0, templateService_1.recommendTemplate)(businessId, {
         emotion: marketing.emotion,

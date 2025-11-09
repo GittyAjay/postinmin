@@ -8,9 +8,13 @@ export declare const generatePostPreview: (businessId: string, theme: string, ow
         updatedAt: Date;
         placeholders: import("@prisma/client/runtime/library").JsonValue;
         backgroundUrl: string | null;
+        backgroundColor: string | null;
         orientation: import(".prisma/client").$Enums.TemplateOrientation;
         tags: string[];
         emotionFit: string[];
+        canvasPreset: string | null;
+        canvasWidth: number | null;
+        canvasHeight: number | null;
         businessId: string;
     };
     renderedImage: string;

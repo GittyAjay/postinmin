@@ -248,11 +248,18 @@ export const applyTemplateToPost = async ({ postId, templateId, ownerId }: Apply
     return variant;
   });
 
+  const variantsPayload =
+    variants.length
+    ? (variants as Prisma.InputJsonValue)
+    : post.variants === null
+      ? Prisma.JsonNull
+      : (post.variants as Prisma.InputJsonValue);
+
   const updated = await prisma.scheduledPost.update({
     where: { id: postId },
     data: {
       templateId: desiredTemplateId,
-      variants: variants.length ? (variants as Prisma.InputJsonValue) : post.variants,
+      variants: variantsPayload,
     },
   });
 

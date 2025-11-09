@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteBusinessController = exports.updateBusinessController = exports.getBusinessController = exports.listBusinessesController = exports.createBusinessController = void 0;
+exports.uploadBusinessLogoController = exports.deleteBusinessController = exports.updateBusinessController = exports.getBusinessController = exports.listBusinessesController = exports.createBusinessController = void 0;
 const zod_1 = require("zod");
 const businessService_1 = require("../services/businessService");
 const asyncHandler_1 = require("../utils/asyncHandler");
+const errors_1 = require("../utils/errors");
 const businessSchema = zod_1.z.object({
     body: zod_1.z.object({
         name: zod_1.z.string(),
@@ -40,5 +41,14 @@ exports.updateBusinessController = (0, asyncHandler_1.asyncHandler)(async (req, 
 exports.deleteBusinessController = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
     await (0, businessService_1.deleteBusiness)(req.params.id, req.user.id);
     res.status(204).send();
+});
+exports.uploadBusinessLogoController = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const file = req.file;
+    if (!file) {
+        throw new errors_1.AppError("No file uploaded", 400);
+    }
+    const filePath = `/${file.path.replace(/\\/g, "/")}`;
+    const business = await (0, businessService_1.updateBusiness)(req.params.id, req.user.id, { logoUrl: filePath });
+    res.status(201).json({ url: filePath, business });
 });
 //# sourceMappingURL=businessController.js.map

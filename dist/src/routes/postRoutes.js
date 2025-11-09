@@ -1,11 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const calendarController_1 = require("../controllers/calendarController");
+const postController_1 = require("../controllers/postController");
 const authMiddleware_1 = require("../middlewares/authMiddleware");
 const router = (0, express_1.Router)();
 router.use(authMiddleware_1.authenticate);
-router.post("/generate", calendarController_1.generateCalendarController);
-router.patch("/template/:postId", calendarController_1.applyTemplateToPostController);
+router.get("/", postController_1.listPostsController);
 exports.default = router;
-//# sourceMappingURL=calendarRoutes.js.map
+//# sourceMappingURL=postRoutes.js.map

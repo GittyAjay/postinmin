@@ -8,18 +8,34 @@ exports.generateBrandVoiceEmbedding = generateBrandVoiceEmbedding;
 const axios_1 = __importDefault(require("axios"));
 const env_1 = require("../config/env");
 const logger_1 = require("../utils/logger");
-const buildFallbackPayload = (business, theme) => ({
-    title: `${theme} Spotlight for ${business.name}`,
-    subtitle: business.goals ? `Goal: ${business.goals}` : "Engage your audience",
-    caption: business.voiceTone && business.targetAudience
-        ? `Share a ${business.voiceTone} message that resonates with ${business.targetAudience}.`
-        : `Highlight why ${business.name} matters today.`,
-    hashtags: ["#marketing", "#brand", `#${theme.replace(/\s+/g, "")}`],
-    emotion: business.preferredEmotion ?? "joy",
-    background_prompt: `vibrant ${business.preferredStyle ?? "modern"} scene evoking ${business.preferredEmotion ?? "joy"}`,
-    layout_type: "square",
+const brandHashtag = (business) => `#${business.name.replace(/[^a-zA-Z0-9]/g, "") || "YourBrand"}`;
+const inferLayoutFromHint = (hint) => {
+    if (!hint)
+        return "square";
+    const normalized = hint.toLowerCase();
+    if (normalized.includes("story") || normalized.includes("vertical"))
+        return "story";
+    if (normalized.includes("wide") || normalized.includes("banner") || normalized.includes("landscape"))
+        return "wide";
+    return "square";
+};
+const buildFallbackPayload = (business, context) => ({
+    title: `${context.theme}: ${business.name}`,
+    subtitle: context.creativeAngle,
+    caption: context.narrativeHook ??
+        `This ${context.dayOfWeek ?? "week"}, spotlight how ${business.name} delivers on ${context.theme.toLowerCase()} by ${context.creativeAngle.toLowerCase()}. ${context.ctaFocus ?? "Invite your audience to take the next step today."}`,
+    hashtags: [
+        brandHashtag(business),
+        `#${context.theme.replace(/\s+/g, "")}`,
+        "#GSTAutomation",
+        "#SmartCompliance",
+        "#GrowthMindset",
+    ],
+    emotion: context.emotion ?? business.preferredEmotion ?? "joy",
+    background_prompt: `a ${business.preferredStyle ?? "modern"} visual showcasing ${context.creativeAngle.toLowerCase()} with ${context.emotion ?? business.preferredEmotion ?? "joy"} energy`,
+    layout_type: inferLayoutFromHint(context.formatHint),
 });
-async function generateMarketingPost(business, theme) {
+async function generateMarketingPost(business, context) {
     const prompt = `
 You are a social media strategist for "${business.name}" (${business.category ?? "business"}).
 Brand voice: ${business.voiceTone ?? "friendly"}.
@@ -29,19 +45,38 @@ Target audience: ${business.targetAudience ?? ""}.
 Preferred emotion: ${business.preferredEmotion ?? "joy"}.
 Style: ${business.preferredStyle ?? "modern"}.
 If available, align with this brand tone embedding: ${business.brandVoiceVector ?? ""}.
-Generate JSON:
+
+Creative brief for today's post:
+- Theme focus: ${context.theme}.
+- Creative angle: ${context.creativeAngle}.
+- Desired emotion: ${context.emotion ?? business.preferredEmotion ?? "joy"}.
+- Format hint: ${context.formatHint ?? "square social post"}.
+- Day of week context: ${context.dayOfWeek ?? "today"}.
+- Call-to-action priority: ${context.ctaFocus ?? "Encourage product engagement"}.
+- Narrative hook inspiration: ${context.narrativeHook ?? "Open with a fresh hook tied to the day's context."}
+
+Requirements:
+1. Craft an original narrative highlighting the theme and creative angle above. Avoid generic phrasing such as "Effortless GST Filing" or "Stress-free compliance".
+2. Start with a vivid hook that references ${context.dayOfWeek ?? "the day"} and the specific pain point solved.
+3. Include a compelling CTA aligned with "${context.ctaFocus ?? "Encourage product engagement"}".
+4. Recommend a production-ready background_prompt that matches the format hint.
+5. Provide exactly five hashtags: include ${brandHashtag(business)} plus a mix of niche and broad tags relevant to the theme.
+6. Set "emotion" to one of: joy, trust, anticipation, luxury, calm, festive.
+7. Choose "layout_type" aligned with the format hint (story, square, or wide).
+
+Return JSON:
 {
   "title": "...",
   "subtitle": "...",
   "caption": "...",
   "hashtags": ["#tag"],
   "emotion": "joy|trust|anticipation|luxury|calm|festive",
-  "background_prompt": "a ${business.preferredStyle ?? "modern"} background evoking ${business.preferredEmotion ?? "joy"} emotion",
+  "background_prompt": "...",
   "layout_type": "square|wide|story"
 }`;
     if (!env_1.env.DEEPSEEK_API_KEY || !env_1.env.DEEPSEEK_API_URL) {
         logger_1.logger.warn("DeepSeek API credentials missing; using fallback marketing payload.");
-        return buildFallbackPayload(business, theme);
+        return buildFallbackPayload(business, context);
     }
     try {
         const endpoint = env_1.env.DEEPSEEK_API_URL.endsWith("chat/completions")
@@ -62,13 +97,13 @@ Generate JSON:
         const content = res.data?.choices?.[0]?.message?.content;
         if (!content) {
             logger_1.logger.warn("DeepSeek response missing content; using fallback payload.");
-            return buildFallbackPayload(business, theme);
+            return buildFallbackPayload(business, context);
         }
         return JSON.parse(content);
     }
     catch (error) {
         logger_1.logger.error("DeepSeek marketing generation failed; using fallback payload.", { error });
-        return buildFallbackPayload(business, theme);
+        return buildFallbackPayload(business, context);
     }
 }
 async function generateBrandVoiceEmbedding(text) {
