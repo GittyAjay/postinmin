@@ -1,4 +1,4 @@
-# Madhuvastwa AI Marketing Automation Backend
+# postinmin Marketing Automation Backend
 
 Production-grade Express.js backend in TypeScript for an AI-powered marketing automation platform. The service automates content creation, calendar scheduling, template management, rendering, analytics, and monetization workflows for business owners.
 

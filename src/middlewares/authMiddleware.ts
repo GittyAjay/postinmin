@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 import { AppError } from "../utils/errors";
 
-const SESSION_COOKIE = process.env.SESSION_COOKIE ?? "madhuvastwa_session";
+const SESSION_COOKIE = process.env.SESSION_COOKIE ?? "postinmin_session";
 
 const extractToken = (req: Request) => {
   const authHeader = req.headers.authorization;

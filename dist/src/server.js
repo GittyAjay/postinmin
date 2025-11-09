@@ -9,7 +9,7 @@ const queues_1 = require("./queues");
 const logger_1 = require("./utils/logger");
 const port = env_1.env.PORT;
 const server = app_1.default.listen(port, () => {
-    logger_1.logger.info(`🚀 Madhuvastwa AI backend running on port ${port}`);
+    logger_1.logger.info(`🚀 postinmin backend running on port ${port}`);
     if (env_1.env.NODE_ENV !== "test") {
         (0, queues_1.startWorkers)();
     }

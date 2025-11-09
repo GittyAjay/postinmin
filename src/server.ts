@@ -6,7 +6,7 @@ import { logger } from "./utils/logger";
 const port = env.PORT;
 
 const server = app.listen(port, () => {
-  logger.info(`🚀 Madhuvastwa AI backend running on port ${port}`);
+  logger.info(`🚀 postinmin backend running on port ${port}`);
   if (env.NODE_ENV !== "test") {
     startWorkers();
   }

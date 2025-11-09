@@ -9,7 +9,7 @@ const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swaggerDefinition = {
     openapi: "3.1.0",
     info: {
-        title: "Madhuvastwa AI Marketing Automation API",
+        title: "postinmin Marketing Automation API",
         version: "1.0.0",
         description: "REST API for AI-powered marketing automation, including calendar generation, template management, analytics, and monetization hooks.",
     },
