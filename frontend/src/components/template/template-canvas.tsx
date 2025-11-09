@@ -55,6 +55,11 @@ export const TEMPLATE_DIMENSIONS = {
 } as const;
 
 const DEFAULT_TEXT_MAX_WIDTH = 320;
+const DEFAULT_LINE_HEIGHT = 1.2;
+const MIN_LINE_HEIGHT = 0.6;
+const MAX_LINE_HEIGHT = 3;
+const MIN_LETTER_SPACING = -10;
+const MAX_LETTER_SPACING = 50;
 
 export const TemplateCanvas = ({
   template,
@@ -882,31 +887,95 @@ export const TemplatePlaceholderList = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-600">Letter Spacing</label>
-                    <Input
-                      type="number"
-                      value={(placeholder.letterSpacing ?? 0).toString()}
-                      onChange={(event) => {
-                        const value = Number(event.target.value);
-                        if (Number.isNaN(value)) return;
-                        onChange(index, { letterSpacing: value });
-                      }}
-                    />
+                <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium text-slate-600 dark:text-slate-300">Line gap</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">
+                        {(placeholder.lineHeight ?? DEFAULT_LINE_HEIGHT).toFixed(2)}x
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min={MIN_LINE_HEIGHT}
+                        max={MAX_LINE_HEIGHT}
+                        step="0.05"
+                        value={(placeholder.lineHeight ?? DEFAULT_LINE_HEIGHT).toFixed(2)}
+                        onChange={(event) => {
+                          const value = Number(event.target.value);
+                          if (Number.isNaN(value)) return;
+                          const clamped = Math.min(MAX_LINE_HEIGHT, Math.max(MIN_LINE_HEIGHT, Number(value.toFixed(2))));
+                          onChange(index, { lineHeight: clamped });
+                        }}
+                        className="h-2 flex-1 cursor-pointer rounded-full bg-slate-200"
+                      />
+                      <Input
+                        type="number"
+                        step="0.05"
+                        min={MIN_LINE_HEIGHT}
+                        max={MAX_LINE_HEIGHT}
+                        value={(placeholder.lineHeight ?? DEFAULT_LINE_HEIGHT).toFixed(2)}
+                        onChange={(event) => {
+                          const raw = event.target.value;
+                          if (raw === "") {
+                            onChange(index, { lineHeight: DEFAULT_LINE_HEIGHT });
+                            return;
+                          }
+                          const value = Number(raw);
+                          if (Number.isNaN(value)) return;
+                          const clamped = Math.min(MAX_LINE_HEIGHT, Math.max(MIN_LINE_HEIGHT, Number(value.toFixed(2))));
+                          onChange(index, { lineHeight: clamped });
+                        }}
+                        className="h-9 w-20 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-blue-400/30"
+                      />
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Adjust spacing between lines for multi-line text blocks.
+                    </p>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-600">Line Height</label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={(placeholder.lineHeight ?? 1.2).toString()}
-                      onChange={(event) => {
-                        const value = Number(event.target.value);
-                        if (Number.isNaN(value)) return;
-                        onChange(index, { lineHeight: value });
-                      }}
-                    />
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium text-slate-600 dark:text-slate-300">Letter spacing</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">
+                        {(placeholder.letterSpacing ?? 0).toFixed(1)}px
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min={MIN_LETTER_SPACING}
+                        max={MAX_LETTER_SPACING}
+                        step="0.5"
+                        value={(placeholder.letterSpacing ?? 0).toFixed(1)}
+                        onChange={(event) => {
+                          const value = Number(event.target.value);
+                          if (Number.isNaN(value)) return;
+                          const clamped = Math.min(MAX_LETTER_SPACING, Math.max(MIN_LETTER_SPACING, Number(value.toFixed(1))));
+                          onChange(index, { letterSpacing: clamped });
+                        }}
+                        className="h-2 flex-1 cursor-pointer rounded-full bg-slate-200"
+                      />
+                      <Input
+                        type="number"
+                        step="0.5"
+                        min={MIN_LETTER_SPACING}
+                        max={MAX_LETTER_SPACING}
+                        value={(placeholder.letterSpacing ?? 0).toFixed(1)}
+                        onChange={(event) => {
+                          const raw = event.target.value;
+                          if (raw === "") {
+                            onChange(index, { letterSpacing: 0 });
+                            return;
+                          }
+                          const value = Number(raw);
+                          if (Number.isNaN(value)) return;
+                          const clamped = Math.min(MAX_LETTER_SPACING, Math.max(MIN_LETTER_SPACING, Number(value.toFixed(1))));
+                          onChange(index, { letterSpacing: clamped });
+                        }}
+                        className="h-9 w-20 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-blue-400/30"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1009,45 +1078,68 @@ export const TemplatePlaceholderList = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Border Width</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="20"
-                      value={placeholder.borderWidth ?? 0}
-                      onChange={(event) => {
-                        const value = parseInt(event.target.value);
-                        onChange(index, { borderWidth: Number.isFinite(value) ? Math.max(0, value) : 0 });
-                      }}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-blue-400/30"
-                    />
+                <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Border</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Toggle outline styling for this image.</p>
+                    </div>
+                    <Toggle
+                      pressed={(placeholder.borderWidth ?? 0) > 0}
+                      onPressedChange={(pressed) =>
+                        onChange(index, {
+                          borderWidth: pressed ? Math.max(1, placeholder.borderWidth ?? 4) : 0,
+                        })
+                      }
+                      className="h-8 rounded-full border border-slate-300 bg-white px-3 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-100 data-[state=on]:border-blue-500 data-[state=on]:bg-blue-500 data-[state=on]:text-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:data-[state=on]:bg-blue-500"
+                    >
+                      {(placeholder.borderWidth ?? 0) > 0 ? "Enabled" : "Disabled"}
+                    </Toggle>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Border Radius</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="200"
-                      value={placeholder.borderRadius ?? 0}
-                      onChange={(event) => {
-                        const value = parseInt(event.target.value);
-                        onChange(index, { borderRadius: Number.isFinite(value) ? Math.max(0, value) : 0 });
-                      }}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-blue-400/30"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Border Color</label>
-                    <ColorPicker
-                      value={placeholder.borderColor ?? "#38bdf8"}
-                      onChange={(color) => onChange(index, { borderColor: color })}
-                      className="w-full"
-                      triggerClassName="justify-start"
-                      label={null}
-                    />
-                  </div>
+                  {(placeholder.borderWidth ?? 0) > 0 ? (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Width</label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="40"
+                          value={(placeholder.borderWidth ?? 1).toString()}
+                          onChange={(event) => {
+                            const value = Number(event.target.value);
+                            if (Number.isNaN(value)) return;
+                            onChange(index, { borderWidth: Math.min(40, Math.max(1, Math.round(value))) });
+                          }}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Radius</label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="200"
+                          value={(placeholder.borderRadius ?? 0).toString()}
+                          onChange={(event) => {
+                            const value = Number(event.target.value);
+                            if (Number.isNaN(value)) return;
+                            onChange(index, { borderRadius: Math.min(200, Math.max(0, Math.round(value))) });
+                          }}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Color</label>
+                        <ColorPicker
+                          value={placeholder.borderColor ?? "#38bdf8"}
+                          onChange={(color) => onChange(index, { borderColor: color })}
+                          className="w-full"
+                          triggerClassName="justify-start"
+                          label={null}
+                        />
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 <p className="text-xs text-slate-500">
