@@ -1,11 +1,11 @@
 {
   "name": "postinmin",
   "version": "1.0.0",
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "scripts": {
     "build": "tsc",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
     "prisma:migrate": "prisma migrate dev",
