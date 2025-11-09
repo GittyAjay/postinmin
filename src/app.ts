@@ -56,7 +56,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/api", router);
 
-app.get("*", (req, res, next) => {
+app.use((req, res, next) => {
   if (req.method !== "GET") {
     return next();
   }
