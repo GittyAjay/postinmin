@@ -1,5 +1,7 @@
+import fs from "fs";
 import cors from "cors";
 import express from "express";
+import path from "path";
 import helmet from "helmet";
 import morgan from "morgan";
 
@@ -24,6 +26,9 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
+
+const publicDir = path.resolve(process.cwd(), "public");
+app.use(express.static(publicDir));
 
 app.use(
   morgan("combined", {
@@ -50,6 +55,20 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api", router);
+
+app.get("*", (req, res, next) => {
+  if (req.method !== "GET") {
+    return next();
+  }
+  if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) {
+    return next();
+  }
+  const indexPath = path.join(publicDir, "index.html");
+  if (!fs.existsSync(indexPath)) {
+    return next();
+  }
+  res.sendFile(indexPath);
+});
 
 app.use((req, res) => {
   res.status(404).json({ status: "error", message: `Route ${req.path} not found` });
