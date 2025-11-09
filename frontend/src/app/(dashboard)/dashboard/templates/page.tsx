@@ -45,6 +45,7 @@ import { EmotionBadge } from "@/components/dashboard/emotion-badge";
 import { TemplateCard } from "@/components/dashboard/template-card";
 import { TemplateCanvas, TemplatePlaceholderList } from "@/components/template/template-canvas";
 import { FileUpload } from "@/components/dashboard/file-upload";
+import { ColorPicker } from "@/components/dashboard/color-picker";
 import { api, endpoints } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import { Business, Template, TemplatePlaceholder } from "@/types/business";
@@ -145,6 +146,13 @@ function TemplatesPageContent() {
   const [historyStatus, setHistoryStatus] = useState({ canUndo: false, canRedo: false });
   const { data: businesses = [] } = useQuery({ queryKey: queryKeys.business, queryFn: fetchBusinesses, placeholderData: [] });
   const { activeBusinessId, setActiveBusinessId } = useBusinessStore();
+
+  const toolbarButtonClass =
+    "h-9 w-9 rounded-full border border-slate-300 bg-slate-100 text-slate-500 transition hover:bg-slate-200 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800";
+  const toolbarActiveClass = "border-blue-500 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 dark:text-blue-300";
+  const toolbarGroupClass =
+    "flex items-center gap-2 rounded-full border border-slate-300 bg-slate-100 px-2 py-1 dark:border-slate-800/60 dark:bg-slate-900/60";
+  const toolbarLabelClass = "text-xs font-medium text-slate-600 dark:text-slate-300";
   const selectedBusiness =
     activeBusinessId && activeBusinessId !== NEW_BUSINESS_ID
       ? businesses.find((item) => item.id === activeBusinessId) ?? null
@@ -1849,13 +1857,14 @@ const createFormPreset = useMemo(
                 <div className="flex-1 overflow-y-auto px-5 py-5">
                   <div className="space-y-5">
                     <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Frame border</h3>
-                        <input
-                          type="color"
+                        <ColorPicker
                           value={editorTemplate?.frameBorderColor ?? "#ffffff"}
-                          onChange={(event) => handleFrameStyleChange({ frameBorderColor: event.target.value })}
-                          className="h-9 w-9 cursor-pointer rounded-full border border-slate-300 bg-white shadow-sm dark:border-slate-700"
+                          onChange={(color) => handleFrameStyleChange({ frameBorderColor: color })}
+                          label={null}
+                          className="w-full sm:w-48 gap-0"
+                          triggerClassName="h-9 justify-start"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
@@ -1886,21 +1895,14 @@ const createFormPreset = useMemo(
                     <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60">
                       <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Background</h3>
                       <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950/60">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="color"
-                              value={editorTemplate?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR}
-                              onChange={(event) => handleBackgroundColorChange(event.target.value)}
-                              className="h-10 w-10 cursor-pointer rounded-lg border border-slate-200 bg-transparent p-0 dark:border-slate-700"
-                            />
-                            <div className="flex flex-col">
-                              <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Fallback color</span>
-                              <span className="font-mono text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                                {(editorTemplate?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR).toUpperCase()}
-                              </span>
-                            </div>
-                          </div>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <ColorPicker
+                          value={editorTemplate?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR}
+                          onChange={(color) => handleBackgroundColorChange(color)}
+                          label="Fallback color"
+                          className="w-full sm:w-64 gap-1"
+                          triggerClassName="h-10 justify-start"
+                        />
                           <Button
                             variant="ghost"
                             size="sm"
@@ -2208,82 +2210,65 @@ const createFormPreset = useMemo(
                   <span>{editorTemplate?.name ?? "Select a template"}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                {editorTemplate ? (
-                  <Select value={activeCanvasPresetId} onValueChange={handleCanvasPresetChange}>
-                    <SelectTrigger className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800 md:min-w-[220px]">
-                      <SelectValue placeholder="Select size" />
-                    </SelectTrigger>
-                    <SelectContent align="end" className="max-h-80 min-w-[20rem]">
-                      {CANVAS_PRESETS.map((preset) => (
-                        <SelectItem key={preset.id} value={preset.id}>
-                          <span className="flex flex-col text-left">
-                            <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{preset.label}</span>
-                            {preset.description ? (
-                              <span className="text-xs text-slate-500">{preset.description}</span>
-                            ) : null}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : null}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 rounded-full border border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800"
-                    onClick={() => adjustZoom("out")}
-                  >
-                    <ZoomOut className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 rounded-full border border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800"
-                    onClick={() => adjustZoom("in")}
-                  >
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
-                  <div className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-800/60 dark:bg-slate-900/50 dark:text-slate-300">
-                    {Math.round(canvasScale * 100)}%
+                  {editorTemplate ? (
+                    <Select value={activeCanvasPresetId} onValueChange={handleCanvasPresetChange}>
+                      <SelectTrigger className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800 md:min-w-[220px]">
+                        <SelectValue placeholder="Select size" />
+                      </SelectTrigger>
+                      <SelectContent align="end" className="max-h-80 min-w-[20rem]">
+                        {CANVAS_PRESETS.map((preset) => (
+                          <SelectItem key={preset.id} value={preset.id}>
+                            <span className="flex flex-col text-left">
+                              <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{preset.label}</span>
+                              {preset.description ? <span className="text-xs text-slate-500">{preset.description}</span> : null}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : null}
+                  <div className={cn(toolbarGroupClass, "gap-1 pr-3")}>
+                    <Button variant="ghost" size="icon" className={cn(toolbarButtonClass, "h-8 w-8 border-0 bg-transparent")} onClick={() => adjustZoom("out")}>
+                      <ZoomOut className="h-4 w-4" />
+                    </Button>
+                    <span className="min-w-[48px] rounded-full bg-white/70 px-2 py-1 text-center text-xs font-semibold text-slate-600 dark:bg-slate-900/40 dark:text-slate-200">
+                      {Math.round(canvasScale * 100)}%
+                    </span>
+                    <Button variant="ghost" size="icon" className={cn(toolbarButtonClass, "h-8 w-8 border-0 bg-transparent")} onClick={() => adjustZoom("in")}>
+                      <ZoomIn className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "h-9 w-9 rounded-full border border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800",
-                      showGrid && "border-blue-500 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 dark:text-blue-300",
-                    )}
-                    onClick={() => setShowGrid((prev) => !prev)}
-                    title={showGrid ? "Hide grid" : "Show grid"}
-                  >
-                    <Grid3X3 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "h-9 w-9 rounded-full border border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800",
-                      snapToGrid && "border-blue-500 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 dark:text-blue-300",
-                    )}
-                    onClick={() => setSnapToGrid((prev) => !prev)}
-                    title={snapToGrid ? "Disable snap to grid" : "Enable snap to grid"}
-                  >
-                    <Magnet className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "h-9 w-9 rounded-full border border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800",
-                      showPlaceholderGuides && "border-blue-500 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 dark:text-blue-300",
-                    )}
-                    onClick={() => setShowPlaceholderGuides((prev) => !prev)}
-                    title={showPlaceholderGuides ? "Hide placeholder guides" : "Show placeholder guides"}
-                  >
-                    {showPlaceholderGuides ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                  </Button>
-                  <div className="flex items-center gap-2 rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs text-slate-600 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-300">
-                    <span>Grid</span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(toolbarButtonClass, showGrid && toolbarActiveClass)}
+                      onClick={() => setShowGrid((prev) => !prev)}
+                      title={showGrid ? "Hide grid" : "Show grid"}
+                    >
+                      <Grid3X3 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(toolbarButtonClass, snapToGrid && toolbarActiveClass)}
+                      onClick={() => setSnapToGrid((prev) => !prev)}
+                      title={snapToGrid ? "Disable snap to grid" : "Enable snap to grid"}
+                    >
+                      <Magnet className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(toolbarButtonClass, showPlaceholderGuides && toolbarActiveClass)}
+                      onClick={() => setShowPlaceholderGuides((prev) => !prev)}
+                      title={showPlaceholderGuides ? "Hide placeholder guides" : "Show placeholder guides"}
+                    >
+                      {showPlaceholderGuides ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <div className={cn(toolbarGroupClass, "gap-2 pr-3")}>
+                    <span className={toolbarLabelClass}>Grid</span>
                     <Input
                       type="number"
                       min={5}
@@ -2291,7 +2276,7 @@ const createFormPreset = useMemo(
                       value={gridSize}
                       onChange={(event) => handleGridSizeChange(Number(event.target.value))}
                       onBlur={(event) => handleGridSizeChange(Number(event.target.value))}
-                      className="h-7 w-16 rounded-full border-0 bg-transparent p-0 text-center text-xs focus-visible:ring-0"
+                      className="h-7 w-16 rounded-full border-0 bg-white/80 px-2 text-center text-xs font-semibold text-slate-600 focus-visible:ring-0 dark:bg-slate-900/40 dark:text-slate-200"
                     />
                   </div>
                 </div>

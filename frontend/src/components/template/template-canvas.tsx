@@ -9,6 +9,7 @@ import { Template, TemplatePlaceholder } from "@/types/business";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileUpload } from "@/components/dashboard/file-upload";
+import { ColorPicker } from "@/components/dashboard/color-picker";
 import { Toggle } from "@/components/ui/toggle";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -763,22 +764,13 @@ export const TemplatePlaceholderList = ({
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Color</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="color"
-                        value={placeholder.color ?? "#FFFFFF"}
-                        onChange={(e) => onChange(index, { color: e.target.value })}
-                        className="h-9 w-full cursor-pointer rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="rounded-lg border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                        onClick={() => onChange(index, { color: randomColor() })}
-                      >
-                        Random
-                      </Button>
-                    </div>
+                    <ColorPicker
+                      value={placeholder.color ?? "#FFFFFF"}
+                      onChange={(color) => onChange(index, { color })}
+                      className="w-full"
+                      triggerClassName="justify-start"
+                      label={null}
+                    />
                   </div>
                 </div>
 
@@ -1048,11 +1040,12 @@ export const TemplatePlaceholderList = ({
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Border Color</label>
-                    <input
-                      type="color"
+                    <ColorPicker
                       value={placeholder.borderColor ?? "#38bdf8"}
-                      onChange={(event) => onChange(index, { borderColor: event.target.value })}
-                      className="h-9 w-full cursor-pointer rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900"
+                      onChange={(color) => onChange(index, { borderColor: color })}
+                      className="w-full"
+                      triggerClassName="justify-start"
+                      label={null}
                     />
                   </div>
                 </div>
@@ -1130,32 +1123,34 @@ export const TemplatePlaceholderList = ({
 
                       <div className={cn("grid gap-3", shapeType === "line" ? "grid-cols-1" : "grid-cols-2")}>
                   <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-slate-600">
-                            {shapeType === "line" ? "Line color" : "Fill color"}
-                          </label>
-                    <input
-                      type="color"
+                    <label className="text-xs font-medium text-slate-600">
+                      {shapeType === "line" ? "Line color" : "Fill color"}
+                    </label>
+                    <ColorPicker
                       value={placeholder.fillColor ?? "#60a5fa"}
-                      onChange={(event) =>
+                      onChange={(color) =>
                         onChange(index, {
-                          fillColor: event.target.value,
-                          ...(shapeType === "line" ? { borderColor: event.target.value } : null),
+                          fillColor: color,
+                          ...(shapeType === "line" ? { borderColor: color } : null),
                         })
                       }
-                      className="h-9 w-full cursor-pointer rounded-lg border border-slate-200 bg-white shadow-sm"
+                      className="w-full"
+                      triggerClassName="justify-start"
+                      label={null}
                     />
                   </div>
-                          {shapeType !== "line" ? (
-                            <div className="space-y-1.5">
-                              <label className="text-xs font-medium text-slate-600">Outline color</label>
-                              <input
-                                type="color"
-                                value={placeholder.borderColor ?? "#1e293b"}
-                                onChange={(event) => onChange(index, { borderColor: event.target.value })}
-                                className="h-9 w-full cursor-pointer rounded-lg border border-slate-200 bg-white shadow-sm"
-                              />
-                            </div>
-                          ) : null}
+                  {shapeType !== "line" ? (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-slate-600">Outline color</label>
+                      <ColorPicker
+                        value={placeholder.borderColor ?? "#1e293b"}
+                        onChange={(color) => onChange(index, { borderColor: color })}
+                        className="w-full"
+                        triggerClassName="justify-start"
+                        label={null}
+                      />
+                    </div>
+                  ) : null}
                       </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -1371,49 +1366,47 @@ export const TemplatePlaceholderList = ({
             )}
 
             <div className="space-y-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-600">Opacity</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={Math.round((placeholder.opacity ?? 1) * 100)}
-                      onChange={(event) => {
-                        const value = Number(event.target.value);
-                        onChange(index, { opacity: Math.min(1, Math.max(0, value / 100)) });
-                      }}
-                      className="h-2 flex-1 cursor-pointer rounded-full bg-slate-200"
-                    />
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={Math.round((placeholder.opacity ?? 1) * 100).toString()}
-                      onChange={(event) => {
-                        const raw = Number(event.target.value);
-                        if (Number.isNaN(raw)) return;
-                        onChange(index, { opacity: Math.min(1, Math.max(0, raw / 100)) });
-                      }}
-                      className="h-9 w-20"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-600">Rotation</label>
-                  <Input
-                    type="number"
-                    min="-180"
-                    max="180"
-                    value={Math.round(placeholder.rotation ?? 0).toString()}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-600">Opacity</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={Math.round((placeholder.opacity ?? 1) * 100)}
                     onChange={(event) => {
                       const value = Number(event.target.value);
-                      if (Number.isNaN(value)) return;
-                      onChange(index, { rotation: value });
+                      onChange(index, { opacity: Math.min(1, Math.max(0, value / 100)) });
                     }}
+                    className="h-2 flex-1 cursor-pointer rounded-full bg-slate-200"
+                  />
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={Math.round((placeholder.opacity ?? 1) * 100).toString()}
+                    onChange={(event) => {
+                      const raw = Number(event.target.value);
+                      if (Number.isNaN(raw)) return;
+                      onChange(index, { opacity: Math.min(1, Math.max(0, raw / 100)) });
+                    }}
+                    className="h-9 w-20"
                   />
                 </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-600">Rotation</label>
+                <Input
+                  type="number"
+                  min="-180"
+                  max="180"
+                  value={Math.round(placeholder.rotation ?? 0).toString()}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    if (Number.isNaN(value)) return;
+                    onChange(index, { rotation: value });
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -2121,8 +2114,6 @@ const PlaceholderNode = ({
     </Group>
   );
 };
-
-const randomColor = () => ["#2563eb", "#f97316", "#facc15", "#22d3ee", "#c084fc", "#14b8a6"][Math.floor(Math.random() * 6)];
 
 interface GridOverlayProps {
   width: number;
