@@ -35,6 +35,7 @@ export interface TemplateLayout {
   id: string;
   name: string;
   backgroundUrl?: string;
+  backgroundColor?: string;
   orientation: "square" | "wide" | "story";
   tags: string[];
   emotionFit: string[];

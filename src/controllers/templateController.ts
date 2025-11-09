@@ -48,6 +48,7 @@ const templateSchema = z.object({
   body: z.object({
     name: z.string(),
     backgroundUrl: z.string().optional(),
+    backgroundColor: z.string().optional(),
     orientation: z.enum(["square", "wide", "story"]),
     tags: z.array(z.string()).default([]),
     emotionFit: z.array(z.string()).default([]),

@@ -82,6 +82,7 @@ model Template {
   businessId    String
   name          String
   backgroundUrl String?
+  backgroundColor String?
   orientation   TemplateOrientation
   tags          String[]            @default([])
   emotionFit    String[]            @default([])

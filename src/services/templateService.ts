@@ -8,6 +8,7 @@ import { TemplateLayout } from "../types/template";
 export interface TemplateInput {
   name: string;
   backgroundUrl?: string;
+  backgroundColor?: string;
   orientation: TemplateOrientation;
   tags: string[];
   emotionFit: string[];
