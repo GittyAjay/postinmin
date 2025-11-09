@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { addDays, format } from "date-fns";
 
 import { CalendarPostCard } from "./calendar-post-card";
-import { ScheduledPost, Template } from "@/types/business";
+import { Business, ScheduledPost, Template } from "@/types/business";
 
 interface CalendarGridProps {
   startDate: string;
@@ -14,6 +14,7 @@ interface CalendarGridProps {
   onTemplateChange?: (post: ScheduledPost, templateId: string | null) => void;
   templateChangeLoadingId?: string | null;
   selectedDate?: string | null;
+  business?: Business | null;
 }
 
 export const CalendarGrid = ({
@@ -24,6 +25,7 @@ export const CalendarGrid = ({
   onTemplateChange,
   templateChangeLoadingId,
   selectedDate,
+  business,
 }: CalendarGridProps) => {
   const postMap = useMemo(() => {
     const dict = new Map<string, ScheduledPost>();
@@ -91,6 +93,7 @@ export const CalendarGrid = ({
               isTemplateUpdating={isTemplateUpdating}
               isPlaceholder={!existingPost}
               isSelected={isSelected}
+              business={business ?? undefined}
             />
           </div>
         );

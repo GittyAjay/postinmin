@@ -20,6 +20,10 @@ const envSchema = z
     STORAGE_TYPE: z.enum(["local", "cloudinary", "s3"]).default("local"),
     CLOUDINARY_URL: z.string().optional(),
     LOG_LEVEL: z.enum(["error", "warn", "info", "http", "verbose", "debug", "silly"]).default("info"),
+    META_APP_ID: z.string().optional(),
+    META_APP_SECRET: z.string().optional(),
+    META_GRAPH_API_VERSION: z.string().default("v21.0"),
+    PUBLIC_APP_URL: z.string().url().optional(),
   })
   .passthrough();
 

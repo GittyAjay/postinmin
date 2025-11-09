@@ -69,6 +69,13 @@ model Business {
   voiceSampleText    String?
   brandVoiceVector   Json?
   preferredPlatforms String[]            @default([])
+  facebookUrl        String?
+  instagramUrl       String?
+  linkedinUrl        String?
+  instagramBusinessId String?
+  instagramAccessToken String?
+  instagramTokenExpiresAt DateTime?
+  instagramLastPublishedAt DateTime?
   templates          Template[]
   calendars          MarketingCalendar[]
   posts              ScheduledPost[]
@@ -126,6 +133,9 @@ model ScheduledPost {
   renderedImage String?
   variants      Json?
   status        PostStatus         @default(PENDING)
+  publishedAt   DateTime?
+  instagramPostId String?
+  instagramPublishedAt DateTime?
   analytics     PostAnalytics?
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt

@@ -1,31 +1,92 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { EmotionBadge } from "./emotion-badge";
-import { ScheduledPost, Template } from "@/types/business";
+import { Business, ScheduledPost, Template } from "@/types/business";
 import { TemplateCanvas, TEMPLATE_DIMENSIONS } from "@/components/template/template-canvas";
 import { cn } from "@/lib/utils";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Download } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Download, Loader2, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
+import { api, endpoints, type ApiError } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
 
 interface PostPreviewModalProps {
   post: ScheduledPost;
   template?: Template;
   trigger?: React.ReactNode;
+  business?: Business;
 }
 
-export const PostPreviewModal = ({ post, template, trigger }: PostPreviewModalProps) => {
+export const PostPreviewModal = ({ post, template, trigger, business }: PostPreviewModalProps) => {
   const [open, setOpen] = useState(false);
   const [showGuides, setShowGuides] = useState(!template);
   const router = useRouter();
   const stageRef = useRef<KonvaStage | null>(null);
+  const queryClient = useQueryClient();
+
+  const publishInstagramMutation = useMutation({
+    mutationFn: async () => {
+      const response = await api.post(endpoints.postPublishInstagram(post.id));
+      return response.data as { instagramPostId: string; publishedAt?: string };
+    },
+    onSuccess: () => {
+      toast.success("Post published to Instagram");
+      queryClient.invalidateQueries(queryKeys.calendar(post.businessId));
+      queryClient.invalidateQueries(queryKeys.posts(post.businessId));
+      queryClient.invalidateQueries(queryKeys.business);
+    },
+    onError: (error: unknown) => {
+      const apiError = error as ApiError;
+      const message =
+        apiError?.response?.data?.message ?? (error instanceof Error ? error.message : "Failed to publish to Instagram");
+      toast.error(message);
+    },
+  });
+
+  const publishToInstagram = () => {
+    if (publishInstagramMutation.isPending) {
+      return;
+    }
+    if (!business?.instagramConnected) {
+      toast("Connect your Instagram account in Business → Identity to enable publishing.");
+      return;
+    }
+    if (!post.renderedImage) {
+      toast.error("Render this post before publishing to Instagram.");
+      return;
+    }
+    publishInstagramMutation.mutate();
+  };
+
+  const shareContext = useMemo(() => {
+    const segments: string[] = [];
+    if (post.title?.trim()) {
+      segments.push(post.title.trim());
+    }
+    if (post.caption?.trim()) {
+      segments.push(post.caption.trim());
+    }
+    const text = segments.join("\n\n");
+    let url: string | null = null;
+    if (post.renderedImage && /^https?:\/\//.test(post.renderedImage)) {
+      url = post.renderedImage;
+    } else if (typeof window !== "undefined") {
+      url = `${window.location.origin}/dashboard/calendar`;
+    }
+
+    return {
+      text,
+      url,
+    };
+  }, [post.caption, post.renderedImage, post.title]);
 
   useEffect(() => {
     setShowGuides(!template);
@@ -99,6 +160,74 @@ export const PostPreviewModal = ({ post, template, trigger }: PostPreviewModalPr
         await waitForNextFrame();
         setShowGuides(true);
       }
+    }
+  };
+
+  const handleShare = async (platform: "facebook" | "linkedin" | "instagram") => {
+    if (typeof window === "undefined") {
+      toast.error("Sharing is only available in the browser.");
+      return;
+    }
+
+    const openPopup = (url: string) => {
+      window.open(url, "_blank", "noopener,noreferrer,width=600,height=700");
+    };
+
+    const { url: shareUrl, text: shareText } = shareContext;
+    if (platform === "facebook") {
+      if (shareUrl) {
+        const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}${
+          shareText ? `&quote=${encodeURIComponent(shareText)}` : ""
+        }`;
+        openPopup(url);
+        toast.success("Opened Facebook share window");
+      } else if (business?.facebookUrl) {
+        window.open(business.facebookUrl, "_blank", "noopener,noreferrer");
+        toast.success("Opened your Facebook page");
+      } else {
+        toast("Add a Facebook page in your business profile to enable quick sharing.");
+      }
+      return;
+    }
+
+    if (platform === "linkedin") {
+      if (shareUrl) {
+        const params = new URLSearchParams({
+          mini: "true",
+          url: shareUrl,
+        });
+        if (post.title) {
+          params.set("title", post.title);
+        }
+        if (shareText) {
+          params.set("summary", shareText);
+        }
+        openPopup(`https://www.linkedin.com/shareArticle?${params.toString()}`);
+        toast.success("Opened LinkedIn share window");
+      } else if (business?.linkedinUrl) {
+        window.open(business.linkedinUrl, "_blank", "noopener,noreferrer");
+        toast.success("Opened your LinkedIn page");
+      } else {
+        toast("Add a LinkedIn page in your business profile to enable quick sharing.");
+      }
+      return;
+    }
+
+    if (platform === "instagram") {
+      const caption = shareText || post.caption || post.title || "";
+      if (caption) {
+        try {
+          await navigator.clipboard.writeText(caption);
+          toast.success("Caption copied for Instagram");
+        } catch {
+          toast.error("Unable to copy caption. Paste manually in Instagram.");
+        }
+      } else {
+        toast("No caption to copy — add text before sharing.");
+      }
+      const destination = business?.instagramUrl ?? "https://www.instagram.com/";
+      window.open(destination, "_blank", "noopener,noreferrer");
+      toast.success("Paste the caption into Instagram to finish publishing.");
     }
   };
 
@@ -211,20 +340,49 @@ export const PostPreviewModal = ({ post, template, trigger }: PostPreviewModalPr
             {post.theme}
             <EmotionBadge emotion={post.emotion} />
           </DialogDescription>
-          {template ? (
-            <div className="flex justify-end gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="border-blue-200 text-blue-600 hover:bg-blue-50">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => void handleTemplateDownload("png")}>Download as PNG</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => void handleTemplateDownload("json")}>Download as JSON</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+          <div className="flex flex-wrap justify-end gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="border-blue-200 text-blue-600 hover:bg-blue-50">
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Share
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-72">
+                <DropdownMenuItem onClick={() => void handleShare("facebook")}>Share to Facebook</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void handleShare("linkedin")}>Share to LinkedIn</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={publishToInstagram} disabled={publishInstagramMutation.isPending}>
+                  {publishInstagramMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {business?.instagramConnected ? "Publish to Instagram" : "Connect Instagram to enable publishing"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void handleShare("instagram")}>
+                  Copy caption &amp; open Instagram
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  disabled={!template}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => void handleTemplateDownload("png")} disabled={!template}>
+                  Download as PNG
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void handleTemplateDownload("json")} disabled={!template}>
+                  Download as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {template ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -240,8 +398,8 @@ export const PostPreviewModal = ({ post, template, trigger }: PostPreviewModalPr
               >
                 Open in Template Editor
               </Button>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </DialogHeader>
         <div className="grid gap-6 lg:grid-cols-[minmax(280px,360px)_1fr]">
           <div className="flex flex-col gap-6">

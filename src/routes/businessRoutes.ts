@@ -5,8 +5,10 @@ import path from "path";
 import { v4 as uuid } from "uuid";
 
 import {
+  connectInstagramController,
   createBusinessController,
   deleteBusinessController,
+  disconnectInstagramController,
   getBusinessController,
   listBusinessesController,
   uploadBusinessLogoController,
@@ -36,6 +38,8 @@ router.get("/:id", getBusinessController);
 router.post("/:id/logo", upload.single("logo"), uploadBusinessLogoController);
 router.put("/:id", updateBusinessController);
 router.delete("/:id", deleteBusinessController);
+router.post("/:id/instagram", connectInstagramController);
+router.delete("/:id/instagram", disconnectInstagramController);
 
 export default router;
 

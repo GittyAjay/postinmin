@@ -12,6 +12,13 @@ export interface Business {
   voiceSampleText?: string;
   brandVoiceVector?: number[];
   preferredPlatforms: string[];
+  facebookUrl?: string | null;
+  instagramUrl?: string | null;
+  linkedinUrl?: string | null;
+  instagramBusinessId?: string | null;
+  instagramTokenExpiresAt?: string | null;
+  instagramLastPublishedAt?: string | null;
+  instagramConnected?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -91,6 +98,9 @@ export interface ScheduledPost {
   renderedImage?: string | null;
   variants?: ScheduledPostVariant[];
   status: "PENDING" | "ACTIVE" | "INACTIVE";
+  publishedAt?: string | null;
+  instagramPostId?: string | null;
+  instagramPublishedAt?: string | null;
 }
 
 export interface AnalyticsSummary {

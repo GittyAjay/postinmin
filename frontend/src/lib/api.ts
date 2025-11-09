@@ -19,6 +19,7 @@ export const endpoints = {
     logout: "/auth/logout",
   },
   business: "/business",
+  businessInstagram: (businessId: string) => `/business/${businessId}/instagram`,
   template: "/template",
   calendar: "/calendar/generate",
   calendarTemplate: "/calendar/template",
@@ -27,6 +28,7 @@ export const endpoints = {
   plan: "/plan",
   search: "/search",
   posts: "/posts",
+  postPublishInstagram: (postId: string) => `/posts/${postId}/publish/instagram`,
 };
 
 api.interceptors.response.use(

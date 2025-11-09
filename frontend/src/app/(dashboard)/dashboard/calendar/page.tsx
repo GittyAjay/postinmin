@@ -280,6 +280,7 @@ export default function CalendarPage() {
               onTemplateChange={handleTemplateApply}
               templateChangeLoadingId={applyTemplate.isPending ? templateUpdatingPostId : null}
               selectedDate={selectedDate}
+              business={selectedBusiness}
             />
           )}
         </>

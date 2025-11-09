@@ -24,6 +24,17 @@ import { Business } from "@/types/business";
 import { cn } from "@/lib/utils";
 import { NEW_BUSINESS_ID, useBusinessStore } from "@/store/business-store";
 
+const socialUrl = z.preprocess(
+  (value) => {
+    if (typeof value !== "string") {
+      return value;
+    }
+    const trimmed = value.trim();
+    return trimmed.length ? trimmed : null;
+  },
+  z.union([z.string().url({ message: "Enter a valid URL (include https://)" }), z.null()]),
+);
+
 const schema = z.object({
   name: z.string().min(2),
   category: z.string().optional(),
@@ -42,9 +53,29 @@ const schema = z.object({
       { message: "Must be a valid URL or server path" },
     )
     .optional(),
+  facebookUrl: socialUrl.optional(),
+  instagramUrl: socialUrl.optional(),
+  linkedinUrl: socialUrl.optional(),
 });
 
 type FormValues = z.input<typeof schema>;
+
+const instagramConnectSchema = z.object({
+  instagramBusinessId: z.string().min(1, "Instagram business ID is required"),
+  instagramAccessToken: z.string().min(10, "Instagram access token is required"),
+  tokenExpiresAt: z
+    .string()
+    .optional()
+    .refine(
+      (value) => {
+        if (!value) return true;
+        return !Number.isNaN(new Date(value).getTime());
+      },
+      { message: "Enter a valid expiration date" },
+    ),
+});
+
+type InstagramFormValues = z.infer<typeof instagramConnectSchema>;
 
 const emotionOptions = ["joy", "trust", "anticipation", "luxury", "calm", "festive"];
 const styleOptions = ["modern", "minimalist", "vibrant", "luxury", "playful"];
@@ -61,6 +92,9 @@ const defaultValues: FormValues = {
   preferredPlatforms: [],
   voiceSampleText: "",
   logoUrl: "",
+  facebookUrl: "",
+  instagramUrl: "",
+  linkedinUrl: "",
 };
 
 const fetchBusinesses = async () => {
@@ -111,6 +145,17 @@ export default function BusinessPage() {
     defaultValues,
   });
 
+  const instagramForm = useForm<InstagramFormValues>({
+    resolver: zodResolver(instagramConnectSchema),
+    defaultValues: {
+      instagramBusinessId: selectedBusiness?.instagramBusinessId ?? "",
+      instagramAccessToken: "",
+      tokenExpiresAt: selectedBusiness?.instagramTokenExpiresAt
+        ? selectedBusiness.instagramTokenExpiresAt.slice(0, 10)
+        : "",
+    },
+  });
+
   useEffect(() => {
     if (selectedBusiness) {
       form.reset({
@@ -125,11 +170,24 @@ export default function BusinessPage() {
         preferredPlatforms: selectedBusiness.preferredPlatforms ?? [],
         voiceSampleText: selectedBusiness.voiceSampleText ?? "",
         logoUrl: selectedBusiness.logoUrl ?? "",
+        facebookUrl: selectedBusiness.facebookUrl ?? "",
+        instagramUrl: selectedBusiness.instagramUrl ?? "",
+        linkedinUrl: selectedBusiness.linkedinUrl ?? "",
       });
     } else {
       form.reset(defaultValues);
     }
   }, [selectedBusiness, form]);
+
+  useEffect(() => {
+    instagramForm.reset({
+      instagramBusinessId: selectedBusiness?.instagramBusinessId ?? "",
+      instagramAccessToken: "",
+      tokenExpiresAt: selectedBusiness?.instagramTokenExpiresAt
+        ? selectedBusiness.instagramTokenExpiresAt.slice(0, 10)
+        : "",
+    });
+  }, [selectedBusiness, instagramForm]);
 
   const createMutation = useMutation({
     mutationFn: async (values: FormValues) => {
@@ -157,10 +215,76 @@ export default function BusinessPage() {
       form.reset({
         ...values,
         logoUrl: updatedBusiness.logoUrl ?? values.logoUrl ?? "",
+        facebookUrl: updatedBusiness.facebookUrl ?? values.facebookUrl ?? "",
+        instagramUrl: updatedBusiness.instagramUrl ?? values.instagramUrl ?? "",
+        linkedinUrl: updatedBusiness.linkedinUrl ?? values.linkedinUrl ?? "",
       });
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to update business"),
   });
+
+  const connectInstagramMutation = useMutation({
+    mutationFn: async ({ businessId, values }: { businessId: string; values: InstagramFormValues }) => {
+      const payload: Record<string, string> = {
+        instagramBusinessId: values.instagramBusinessId.trim(),
+        instagramAccessToken: values.instagramAccessToken.trim(),
+      };
+      if (values.tokenExpiresAt) {
+        payload.tokenExpiresAt = new Date(values.tokenExpiresAt).toISOString();
+      }
+      const response = await api.post(endpoints.businessInstagram(businessId), payload);
+      return response.data as Business;
+    },
+    onSuccess: (updatedBusiness) => {
+      toast.success("Instagram connection updated");
+      queryClient.setQueryData<Business[]>(queryKeys.business, (prev = []) =>
+        prev.map((item) => (item.id === updatedBusiness.id ? updatedBusiness : item)),
+      );
+      instagramForm.reset({
+        instagramBusinessId: updatedBusiness.instagramBusinessId ?? "",
+        instagramAccessToken: "",
+        tokenExpiresAt: updatedBusiness.instagramTokenExpiresAt
+          ? updatedBusiness.instagramTokenExpiresAt.slice(0, 10)
+          : "",
+      });
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to connect Instagram"),
+  });
+
+  const disconnectInstagramMutation = useMutation({
+    mutationFn: async (businessId: string) => {
+      const response = await api.delete(endpoints.businessInstagram(businessId));
+      return response.data as Business;
+    },
+    onSuccess: (updatedBusiness) => {
+      toast.success("Instagram disconnected");
+      queryClient.setQueryData<Business[]>(queryKeys.business, (prev = []) =>
+        prev.map((item) => (item.id === updatedBusiness.id ? updatedBusiness : item)),
+      );
+      instagramForm.reset({
+        instagramBusinessId: "",
+        instagramAccessToken: "",
+        tokenExpiresAt: "",
+      });
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to disconnect Instagram"),
+  });
+
+  const instagramConnected = selectedBusiness?.instagramConnected ?? false;
+  const lastInstagramPublish = selectedBusiness?.instagramLastPublishedAt
+    ? new Date(selectedBusiness.instagramLastPublishedAt)
+    : null;
+  const instagramTokenExpiry = selectedBusiness?.instagramTokenExpiresAt
+    ? new Date(selectedBusiness.instagramTokenExpiresAt)
+    : null;
+  const instagramTokenExpiryLabel =
+    instagramTokenExpiry && !Number.isNaN(instagramTokenExpiry.getTime())
+      ? instagramTokenExpiry.toLocaleDateString()
+      : "Unknown";
+  const lastInstagramPublishLabel =
+    lastInstagramPublish && !Number.isNaN(lastInstagramPublish.getTime())
+      ? lastInstagramPublish.toLocaleString()
+      : "Never";
 
   const ensureBusiness = async () => {
     if (selectedBusiness) return selectedBusiness;
@@ -507,6 +631,54 @@ export default function BusinessPage() {
                 </div>
               </div>
 
+              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/60">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Social touchpoints</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Add public handles so share actions point to the right destinations. Leave blank if you don’t publish there.
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="facebookUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Facebook page</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://www.facebook.com/your-page" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="instagramUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Instagram profile</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://www.instagram.com/your-handle" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="linkedinUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>LinkedIn page</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://www.linkedin.com/company/your-company" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center justify-end gap-3">
                 <Button
                   type="submit"
@@ -526,6 +698,125 @@ export default function BusinessPage() {
           </CardContent>
         )}
       </Card>
+      {!isCreatingNew && selectedBusiness ? (
+        <Card className="border-slate-200 shadow-sm dark:border-slate-800">
+          <CardHeader>
+            <CardTitle>Instagram publishing</CardTitle>
+            <CardDescription>
+              Connect your Instagram professional account to publish calendar posts with a single click.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
+              <p className="font-medium text-slate-700 dark:text-slate-200">
+                Status:{" "}
+                <span
+                  className={
+                    instagramConnected ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"
+                  }
+                >
+                  {instagramConnected ? "Connected" : "Not connected"}
+                </span>
+              </p>
+              <div className="mt-3 space-y-1 text-xs">
+                <p>
+                  Instagram business ID:{" "}
+                  <span className="font-medium text-slate-700 dark:text-slate-200">
+                    {selectedBusiness.instagramBusinessId ?? "Not set"}
+                  </span>
+                </p>
+                <p>
+                  Token expires:{" "}
+                  <span className="font-medium text-slate-700 dark:text-slate-200">{instagramTokenExpiryLabel}</span>
+                </p>
+                <p>
+                  Last published:{" "}
+                  <span className="font-medium text-slate-700 dark:text-slate-200">{lastInstagramPublishLabel}</span>
+                </p>
+              </div>
+            </div>
+            <Form {...instagramForm}>
+              <form
+                onSubmit={instagramForm.handleSubmit((values) =>
+                  connectInstagramMutation.mutate({ businessId: selectedBusiness.id, values }),
+                )}
+                className="space-y-4"
+              >
+                <FormField
+                  control={instagramForm.control}
+                  name="instagramBusinessId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Instagram business account ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="1784..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={instagramForm.control}
+                  name="instagramAccessToken"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Long-lived access token</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="EAAG..." autoComplete="off" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Token must include the <span className="font-medium">instagram_business_content_publish</span>{" "}
+                        permission.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={instagramForm.control}
+                  name="tokenExpiresAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Token expiration (optional)</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  {instagramConnected ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => disconnectInstagramMutation.mutate(selectedBusiness.id)}
+                      disabled={disconnectInstagramMutation.isPending || connectInstagramMutation.isPending}
+                    >
+                      {disconnectInstagramMutation.isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
+                      Disconnect
+                    </Button>
+                  ) : null}
+                  <Button
+                    type="submit"
+                    className="bg-blue-600 text-white hover:bg-blue-700"
+                    disabled={connectInstagramMutation.isPending || disconnectInstagramMutation.isPending}
+                  >
+                    {connectInstagramMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Save credentials
+                  </Button>
+                </div>
+              </form>
+            </Form>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              We store the ID and token securely to call Meta’s Graph API on your behalf. Refresh tokens every 60 days to
+              keep publishing enabled.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

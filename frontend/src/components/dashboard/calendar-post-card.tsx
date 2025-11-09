@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmotionBadge } from "./emotion-badge";
 import { PostPreviewModal } from "./post-preview-modal";
-import { ScheduledPost, Template } from "@/types/business";
+import { Business, ScheduledPost, Template } from "@/types/business";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
@@ -17,6 +17,7 @@ interface CalendarPostCardProps {
   isTemplateUpdating?: boolean;
   isPlaceholder?: boolean;
   isSelected?: boolean;
+  business?: Business;
 }
 
 export const CalendarPostCard = ({
@@ -27,6 +28,7 @@ export const CalendarPostCard = ({
   isTemplateUpdating = false,
   isPlaceholder = false,
   isSelected = false,
+  business,
 }: CalendarPostCardProps) => {
   const currentTemplateId = post.templateId ?? null;
   const value = currentTemplateId ?? "none";
@@ -118,6 +120,7 @@ export const CalendarPostCard = ({
     <PostPreviewModal
       post={post}
       template={template}
+      business={business}
       trigger={
         <div className="h-full cursor-pointer" role="button" tabIndex={0}>
           {card}
